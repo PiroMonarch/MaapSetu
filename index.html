@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MaapSetu — NAWI Test Report Generator</title>
+    <meta name="description" content="Digital NAWI testing, compliance evaluation and structured OIML R 76 report generation." />
+    <meta property="og:title" content="MaapSetu — NAWI Test Report Generator" />
+    <meta property="og:description" content="Digital NAWI testing, compliance evaluation and structured OIML R 76 report generation." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+      // Fix for "Cannot set property fetch of #<Window> which has only a getter"
+      // This intercepts attempts to override window.fetch by extensions or polyfills.
+      (function() {
+        let _fetch = window.fetch;
+        try {
+          Object.defineProperty(window, 'fetch', {
+            get: function() { return _fetch; },
+            set: function(val) { _fetch = val; },
+            configurable: true
+          });
+        } catch (e) {
+          console.warn("Could not redefine window.fetch", e);
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

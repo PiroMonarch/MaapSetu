@@ -1,0 +1,6 @@
+{
+  "name": "MaapSetu — NAWI Test Report Generator",
+  "description": "Digital NAWI testing, compliance evaluation and structured OIML R 76 report generation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

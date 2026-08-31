@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@theme {
+  --color-warm-ivory: #F5F3EC;
+  --color-near-black: #101214;
+  --color-industrial-blue: #123B5D;
+  --color-electric-lime: #C7F36B;
+  --color-signal-orange: #FF7043;
+  --color-emerald: #159A70;
+  --color-red: #E05252;
+  --color-app-bg: #F5F3EC;
+
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-heading: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-warm-ivory text-near-black antialiased selection:bg-electric-lime selection:text-near-black;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading tracking-tight;
+  }
+}
