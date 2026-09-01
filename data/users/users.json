@@ -1,0 +1,47 @@
+[
+    {
+        "user_id": "USR-001",
+        "name": "Anjali Sharma",
+        "email": "inspector@maapsetu.com",
+        "role": "TEST_OFFICER",
+        "designation": "Scientific Officer Grade II",
+        "laboratory_id": "LAB-001",
+        "status": "ACTIVE"
+    },
+    {
+        "user_id": "USR-002",
+        "name": "Rajesh Kumar",
+        "email": "manager@maapsetu.com",
+        "role": "LAB_MANAGER",
+        "designation": "Deputy Director (Metrology)",
+        "laboratory_id": "LAB-001",
+        "status": "ACTIVE"
+    },
+    {
+        "user_id": "USR-003",
+        "name": "Sunita Patil",
+        "email": "reviewer@maapsetu.com",
+        "role": "REVIEWER",
+        "designation": "Scientific Officer Grade I",
+        "laboratory_id": "LAB-002",
+        "status": "ACTIVE"
+    },
+    {
+        "user_id": "USR-004",
+        "name": "Karthik Rajan",
+        "email": "auditor@maapsetu.com",
+        "role": "AUDITOR",
+        "designation": "Joint Director (Legal Metrology)",
+        "laboratory_id": "LAB-003",
+        "status": "ACTIVE"
+    },
+    {
+        "user_id": "USR-005",
+        "name": "Admin",
+        "email": "admin@maapsetu.com",
+        "role": "ADMIN",
+        "designation": "System Administrator",
+        "laboratory_id": "LAB-001",
+        "status": "ACTIVE"
+    }
+]

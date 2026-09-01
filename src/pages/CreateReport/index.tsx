@@ -2,15 +2,15 @@ import React, { useEffect } from 'react';
 import { Outlet, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
-import { ArrowRight, ArrowLeft } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Check } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 
 const steps = [
-  { id: '01', name: 'General', path: '/reports/new/general' },
-  { id: '02', name: 'Specs', path: '/reports/new/instrument' },
-  { id: '03', name: 'Matrix', path: '/reports/new/conditions' },
-  { id: '04', name: 'Workspace', path: '/reports/new/tests' },
-  { id: '05', name: 'Generate', path: '/reports/new/review' },
+  { id: 1, name: 'General', short: 'General', path: '/reports/new/general' },
+  { id: 2, name: 'Specs', short: 'Specs', path: '/reports/new/instrument' },
+  { id: 3, name: 'Conditions', short: 'Conditions', path: '/reports/new/conditions' },
+  { id: 4, name: 'Tests', short: 'Tests', path: '/reports/new/tests' },
+  { id: 5, name: 'Review', short: 'Review', path: '/reports/new/review' },
 ];
 
 export function CreateReportLayout() {
@@ -35,18 +35,17 @@ export function CreateReportLayout() {
       updateTestResults([]);
     }
   }, [reportId]);
-  
+
   const currentStepIndex = steps.findIndex(s => location.pathname.includes(s.path));
   const activeStep = currentStepIndex >= 0 ? currentStepIndex : 0;
 
   const handleNext = async () => {
-    // If we are at step 1 and have no report ID, we should create a draft
     if (activeStep === 0 && !currentReportId) {
       const data = useAppStore.getState().reportData;
       const res = await fetch('/api/reports', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...data, status: 'Draft' })
+        body: JSON.stringify({ ...data, status: 'Draft' }),
       });
       const newReport = await res.json();
       setCurrentReportId(newReport._id);
@@ -54,16 +53,14 @@ export function CreateReportLayout() {
       return;
     }
 
-    // If on final step, execute / finalize the report
     if (activeStep === steps.length - 1) {
-      if (!currentReportId) return; // nothing to execute
+      if (!currentReportId) return;
       try {
         await fetch(`/api/reports/${currentReportId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: 'Completed' })
+          body: JSON.stringify({ status: 'Completed' }),
         });
-        // Optionally navigate to reports list after execution
         navigate('/reports');
       } catch (err) {
         console.error('Execute error', err);
@@ -86,35 +83,59 @@ export function CreateReportLayout() {
 
   return (
     <div className="flex flex-col h-full bg-warm-ivory">
-      {/* Editorial Stepper Header */}
-      <div className="bg-near-black text-warm-ivory px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-6 shrink-0">
-        <div className="flex items-center gap-8 overflow-x-auto no-scrollbar">
-          {steps.map((step, idx) => (
-            <div 
-              key={step.id} 
-              className={cn(
-                "flex items-center gap-3 whitespace-nowrap transition-colors cursor-pointer",
-                idx === activeStep ? "text-electric-lime" : idx < activeStep ? "text-warm-ivory" : "text-warm-ivory/30"
-              )}
-              onClick={() => navigate(step.path + (currentReportId ? `?id=${currentReportId}` : ''))}
-            >
-              <span className="font-mono text-sm font-bold">{step.id}</span>
-              <span className="font-bold uppercase tracking-widest">{step.name}</span>
-            </div>
-          ))}
-        </div>
-        
-        <div className="flex items-center gap-4">
-          <Button variant="outline" className="border-warm-ivory/20 text-warm-ivory hover:bg-warm-ivory hover:text-near-black" onClick={handleBack}>
-            <ArrowLeft className="h-4 w-4 mr-2" /> Back
-          </Button>
-          <Button className="bg-electric-lime text-near-black hover:bg-white" onClick={handleNext}>
-            {activeStep === steps.length - 1 ? 'Execute' : 'Next'} <ArrowRight className="h-4 w-4 ml-2" />
-          </Button>
+      {/* ── Step Header ─────────────────────────────── */}
+      <div className="bg-white/90 backdrop-blur-md border-b border-near-black/8 px-5 py-3.5">
+        <div className="max-w-screen-2xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+
+          {/* Step indicators */}
+          <div className="flex items-center gap-0 overflow-x-auto no-scrollbar">
+            {steps.map((step, idx) => {
+              const isActive = idx === activeStep;
+              const isCompleted = idx < activeStep;
+              return (
+                <React.Fragment key={step.id}>
+                  <button
+                    onClick={() => navigate(step.path + (currentReportId ? `?id=${currentReportId}` : ''))}
+                    className={cn(
+                      'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap',
+                      isActive
+                        ? 'bg-near-black text-warm-ivory'
+                        : isCompleted
+                          ? 'text-emerald hover:bg-emerald/8'
+                          : 'text-near-black/35 hover:text-near-black/60 cursor-default'
+                    )}
+                    disabled={!isCompleted && !isActive}
+                  >
+                    <span className={cn(
+                      'h-5 w-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0',
+                      isActive ? 'bg-electric-lime text-near-black' : isCompleted ? 'bg-emerald/15 text-emerald' : 'bg-near-black/8 text-near-black/35'
+                    )}>
+                      {isCompleted ? <Check className="h-3 w-3" /> : step.id}
+                    </span>
+                    <span className="hidden sm:inline">{step.name}</span>
+                  </button>
+                  {idx < steps.length - 1 && (
+                    <div className={cn('w-6 h-px mx-1 shrink-0', idx < activeStep ? 'bg-emerald/30' : 'bg-near-black/10')} />
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
+
+          {/* Navigation buttons */}
+          <div className="flex items-center gap-2 shrink-0">
+            <Button variant="outline" size="sm" onClick={handleBack}>
+              <ArrowLeft className="h-3.5 w-3.5" /> Back
+            </Button>
+            <Button size="sm" onClick={handleNext}>
+              {activeStep === steps.length - 1 ? 'Finalize Report' : 'Continue'}
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Content Area */}
+      {/* ── Step Content ─────────────────────────────── */}
       <div className="flex-1 overflow-auto">
         <Outlet />
       </div>

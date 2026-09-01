@@ -1,0 +1,41 @@
+[
+    {
+        "laboratory_id": "LAB-001",
+        "name": "Regional Legal Metrology Test Laboratory — Faridabad",
+        "location": "Faridabad",
+        "state": "Haryana",
+        "address": "Sector 20-C, Faridabad, Haryana — 121002",
+        "accreditation_number": "NABL/LM/2022/0041",
+        "accreditation_status": "ACTIVE",
+        "accreditation_valid_until": "2027-12-31",
+        "contact_email": "lab-fbd@example.gov.in",
+        "contact_phone": "+91-129-2345678",
+        "head_of_lab": "Rajesh Kumar"
+    },
+    {
+        "laboratory_id": "LAB-002",
+        "name": "State Legal Metrology Laboratory — Pune",
+        "location": "Pune",
+        "state": "Maharashtra",
+        "address": "Near Shivajinagar, Pune, Maharashtra — 411005",
+        "accreditation_number": "NABL/LM/2021/0019",
+        "accreditation_status": "ACTIVE",
+        "accreditation_valid_until": "2026-06-30",
+        "contact_email": "lab-pune@example.gov.in",
+        "contact_phone": "+91-20-25601234",
+        "head_of_lab": "Sunita Patil"
+    },
+    {
+        "laboratory_id": "LAB-003",
+        "name": "Central Weights & Measures Laboratory — Chennai",
+        "location": "Chennai",
+        "state": "Tamil Nadu",
+        "address": "Anna Salai, Chennai, Tamil Nadu — 600002",
+        "accreditation_number": "NABL/LM/2023/0057",
+        "accreditation_status": "ACTIVE",
+        "accreditation_valid_until": "2028-03-31",
+        "contact_email": "lab-maa@example.gov.in",
+        "contact_phone": "+91-44-28350000",
+        "head_of_lab": "Karthik Rajan"
+    }
+]
