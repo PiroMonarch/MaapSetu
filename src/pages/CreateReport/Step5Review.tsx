@@ -1,22 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
-import { FileText, Download, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Badge } from '@/components/ui/Badge';
+import { FileText, Download, CheckCircle2, AlertCircle, Scale, Sparkles, Loader2, XCircle } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { useNavigate } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 
 export function Step5Review() {
   const { currentReportId, reportData, testResults } = useAppStore();
   const [instrument, setInstrument] = useState<any>(null);
+  const [overallResult, setOverallResult] = useState<string | null>(null);
+  const [failedTests, setFailedTests] = useState<string[]>([]);
+  const [aiAdvice, setAiAdvice] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [finalizing, setFinalizing] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     if (reportData.instrumentId) {
-      const id = typeof reportData.instrumentId === 'string' ? reportData.instrumentId : reportData.instrumentId._id;
-      if (id) {
-        fetch(`/api/instruments/${id}`)
-          .then(res => res.json())
-          .then(setInstrument);
-      }
+      const id = typeof reportData.instrumentId === 'string'
+        ? reportData.instrumentId : reportData.instrumentId._id;
+      if (id) fetch(`/api/instruments/${id}`).then(r => r.json()).then(setInstrument);
     }
   }, [reportData.instrumentId]);
 
@@ -27,145 +31,301 @@ export function Step5Review() {
 
   const handleFinalize = async () => {
     if (!currentReportId) return;
+    setFinalizing(true);
     try {
-      await fetch(`/api/reports/${currentReportId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'Completed' })
+      const res = await fetch(`/api/reports/${currentReportId}/finalize`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
       });
-      navigate('/reports');
-    } catch (err) {
-      console.error(err);
-    }
+      const data = await res.json();
+      setOverallResult(data.overallResult);
+      setFailedTests(data.failedTests || []);
+    } finally { setFinalizing(false); }
   };
 
-  const isComplete = testResults.length > 0;
-  const anyFail = testResults.some(t => !t.passed);
+  const handleAIAdvice = async () => {
+    if (!failedTests.length) return;
+    setAiLoading(true);
+    setAiAdvice('');
+    try {
+      const res = await fetch('/api/ai/compliance-advice', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          failedTests,
+          instrumentClass: instrument?.accuracyClass || 'III',
+          oimlVersion: reportData.oimlVersion || 'OIML R 76-1:2006',
+        }),
+      });
+      const d = await res.json();
+      setAiAdvice(d.advice || '');
+    } finally { setAiLoading(false); }
+  };
+
+  const validationItems = [
+    { label: 'General Information', done: !!reportData.applicationNo },
+    { label: 'Instrument Selected', done: !!reportData.instrumentId },
+    { label: 'Lab Conditions', done: !!reportData.testConditions?.temperature },
+    { label: `Test Records (${testResults.length})`, done: testResults.length > 0 },
+  ];
+
+  const overallColor = overallResult === 'Pass' ? 'emerald' : overallResult === 'Fail' ? 'red' : 'signal-orange';
 
   return (
-    <div className="max-w-screen-2xl mx-auto p-6 lg:p-12 w-full">
-      <div className="mb-12 flex flex-col md:flex-row justify-between items-end gap-8 border-b-4 border-near-black pb-8">
+    <div className="max-w-screen-2xl mx-auto px-5 py-8 lg:px-10 page-enter">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h2 className="text-[8vw] lg:text-[5vw] font-heading font-bold uppercase tracking-tighter leading-[0.85] text-near-black">
-            The Decision <br/>
-            Becomes A <span className="text-industrial-blue">Report.</span>
-          </h2>
+          <div className="flex items-center gap-2 mb-2">
+            <Badge variant="info" dot>Step 5 of 5</Badge>
+            {overallResult && (
+              <Badge variant={overallResult === 'Pass' ? 'success' : overallResult === 'Fail' ? 'error' : 'warning'} dot>
+                {overallResult}
+              </Badge>
+            )}
+          </div>
+          <h2 className="text-2xl font-heading font-bold text-near-black tracking-tight">Review & Finalize</h2>
+          <p className="text-sm text-near-black/50 mt-1">Confirm all data, determine overall compliance, and generate the report.</p>
         </div>
-        <div className="flex gap-4">
-          <Button onClick={handleExportPDF} variant="outline" size="lg" className="border-near-black"><Download className="mr-2 h-5 w-5" /> Export PDF</Button>
-          <Button onClick={handleFinalize} size="lg" className="bg-near-black text-warm-ivory hover:bg-electric-lime hover:text-near-black">
-            <FileText className="mr-2 h-5 w-5" /> Finalize Document
+        <div className="flex gap-2 flex-wrap">
+          <Button variant="outline" onClick={handleExportPDF} disabled={!currentReportId}>
+            <Download className="h-4 w-4" /> Export PDF
+          </Button>
+          <Button onClick={handleFinalize} disabled={!currentReportId || finalizing}>
+            {finalizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+            Determine Compliance
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
-        {/* Left Side: Summary & Actions */}
-        <div className="lg:col-span-4 space-y-12">
-          
-          <div className="bg-near-black text-warm-ivory p-8">
-            <h3 className="text-2xl font-heading font-bold uppercase tracking-tight text-electric-lime mb-6">Validation</h3>
-            <ul className="space-y-4 font-mono text-sm">
-              <li className="flex items-center justify-between border-b border-warm-ivory/10 pb-2">
-                <span>General Information</span> <CheckCircle2 className="h-5 w-5 text-electric-lime" />
-              </li>
-              <li className="flex items-center justify-between border-b border-warm-ivory/10 pb-2">
-                <span>Specifications</span> <CheckCircle2 className="h-5 w-5 text-electric-lime" />
-              </li>
-              <li className="flex items-center justify-between border-b border-warm-ivory/10 pb-2">
-                <span>Test Conditions</span> <CheckCircle2 className="h-5 w-5 text-electric-lime" />
-              </li>
-              <li className="flex items-center justify-between pb-2">
-                <span className={isComplete ? "text-electric-lime" : "text-signal-orange"}>Data Records ({testResults.length})</span> 
-                {isComplete ? <CheckCircle2 className="h-5 w-5 text-electric-lime" /> : <AlertCircle className="h-5 w-5 text-signal-orange" />}
-              </li>
-            </ul>
-          </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-          <div>
-            <h3 className="text-2xl font-heading font-bold uppercase tracking-tight mb-6">Test Results</h3>
-            <div className="space-y-2">
-              {testResults.map(test => (
-                <div key={test.testName} className="flex justify-between items-center p-4 bg-white border border-near-black/10">
-                  <span className="font-bold text-sm uppercase">{test.testName}</span>
-                  <span className={`font-mono font-bold ${test.passed ? 'text-emerald' : 'text-red-500'}`}>{test.passed ? 'PASS' : 'FAIL'}</span>
+        {/* ── Left sidebar ──────────────────────────────────────────── */}
+        <div className="space-y-4">
+          {/* Checklist */}
+          <div className="glass-surface rounded-2xl overflow-hidden">
+            <div className="px-5 py-3 border-b border-near-black/8 bg-near-black/3">
+              <p className="text-xs font-semibold text-near-black/50 uppercase tracking-wider">Checklist</p>
+            </div>
+            <div className="divide-y divide-near-black/6">
+              {validationItems.map(item => (
+                <div key={item.label} className="flex items-center justify-between px-5 py-3">
+                  <span className="text-sm text-near-black/65">{item.label}</span>
+                  {item.done
+                    ? <CheckCircle2 className="h-4 w-4 text-emerald shrink-0" />
+                    : <AlertCircle className="h-4 w-4 text-signal-orange shrink-0" />
+                  }
                 </div>
               ))}
-              {testResults.length === 0 && (
-                <div className="p-4 bg-white border border-near-black/10 text-near-black/50 font-bold uppercase text-center text-sm">No tests completed</div>
+            </div>
+          </div>
+
+          {/* Test Results */}
+          <div className="glass-surface rounded-2xl overflow-hidden">
+            <div className="px-5 py-3 border-b border-near-black/8 bg-near-black/3">
+              <p className="text-xs font-semibold text-near-black/50 uppercase tracking-wider">Test Results</p>
+            </div>
+            <div className="divide-y divide-near-black/6">
+              {testResults.length === 0 ? (
+                <div className="px-5 py-6 text-center text-xs text-near-black/30">No tests completed</div>
+              ) : testResults.map((t: any) => (
+                <div key={t.testName} className="flex items-center justify-between px-5 py-3">
+                  <div>
+                    <p className="text-sm font-medium text-near-black">{t.testName}</p>
+                    {t.testCode && <p className="text-xs font-mono text-near-black/30">{t.testCode}</p>}
+                  </div>
+                  <Badge variant={t.passed ? 'success' : 'error'} dot>
+                    {t.passed ? 'Pass' : 'Fail'}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Overall result box */}
+          {overallResult && (
+            <div className={cn(
+              'rounded-2xl p-5 text-center border-2',
+              overallResult === 'Pass' ? 'bg-emerald/8 border-emerald/30' :
+                overallResult === 'Fail' ? 'bg-red/8 border-red/30' :
+                  'bg-signal-orange/8 border-signal-orange/30'
+            )}>
+              {overallResult === 'Pass'
+                ? <CheckCircle2 className="h-8 w-8 text-emerald mx-auto mb-2" />
+                : <XCircle className="h-8 w-8 text-red mx-auto mb-2" />
+              }
+              <p className={cn(
+                'text-xl font-heading font-bold',
+                overallResult === 'Pass' ? 'text-emerald' : overallResult === 'Fail' ? 'text-red' : 'text-signal-orange'
+              )}>
+                Overall: {overallResult}
+              </p>
+              {failedTests.length > 0 && (
+                <p className="text-xs text-near-black/50 mt-2">
+                  Failed: {failedTests.join(', ')}
+                </p>
               )}
             </div>
-          </div>
+          )}
+
+          {/* AI Compliance Advice */}
+          {overallResult === 'Fail' && failedTests.length > 0 && (
+            <div className="glass-surface rounded-2xl p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles className="h-4 w-4 text-industrial-blue" />
+                <p className="text-sm font-semibold text-near-black">AI Compliance Advice</p>
+              </div>
+              {aiAdvice ? (
+                <p className="text-xs text-near-black/65 leading-relaxed">{aiAdvice}</p>
+              ) : (
+                <Button variant="subtle" size="sm" onClick={handleAIAdvice} disabled={aiLoading} className="w-full">
+                  {aiLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                  Get AI Recommendations
+                </Button>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Right Side: A4 Document Preview */}
-        <div className="lg:col-span-8 bg-black/5 p-8 md:p-12 flex justify-center overflow-x-auto">
-          <div className="w-[794px] h-[1123px] bg-white shadow-2xl p-16 flex flex-col shrink-0 font-sans text-near-black relative">
-            {/* Document Watermark */}
-            <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
-              <span className="text-9xl font-heading font-bold -rotate-45">MAAPSETU</span>
+        {/* ── A4 Document Preview ──────────────────────────────────── */}
+        <div className="lg:col-span-2 glass-surface rounded-2xl p-4 overflow-auto flex justify-center">
+          <div className="w-full max-w-[660px] bg-white rounded-xl shadow-[0_8px_32px_rgba(16,18,20,0.1)] font-sans text-near-black relative overflow-hidden">
+            {/* Watermark */}
+            <div className="absolute inset-0 flex items-center justify-center opacity-[0.025] pointer-events-none rotate-[-30deg]">
+              <span className="text-7xl font-heading font-black">MAAPSETU</span>
             </div>
 
-            <div className="border-b-4 border-near-black pb-6 mb-12 text-center">
-              <h1 className="text-3xl font-heading font-bold uppercase tracking-widest">OIML R 76</h1>
-              <h2 className="text-xl font-bold uppercase tracking-widest text-near-black/60 mt-2">NAWI Test Report</h2>
-            </div>
-
-            <div className="grid grid-cols-2 gap-x-12 gap-y-8 mb-16">
-              <div>
-                <span className="block text-xs font-bold text-near-black/40 uppercase tracking-widest mb-1">Report ID</span>
-                <span className="font-mono font-bold text-lg">{reportData.applicationNo || 'DRAFT'}</span>
-              </div>
-              <div>
-                <span className="block text-xs font-bold text-near-black/40 uppercase tracking-widest mb-1">Date</span>
-                <span className="font-mono font-bold text-lg">{reportData.date?.split('T')[0] || new Date().toISOString().split('T')[0]}</span>
-              </div>
-              <div className="col-span-2 border-t-2 border-near-black/10 pt-8">
-                <span className="block text-xs font-bold text-near-black/40 uppercase tracking-widest mb-1">Manufacturer</span>
-                <span className="text-xl font-bold uppercase">{instrument?.manufacturer || '-'}</span>
-              </div>
-              <div>
-                <span className="block text-xs font-bold text-near-black/40 uppercase tracking-widest mb-1">Instrument Type</span>
-                <span className="font-bold text-lg uppercase">{instrument?.model || '-'}</span>
-              </div>
-              <div>
-                <span className="block text-xs font-bold text-near-black/40 uppercase tracking-widest mb-1">Accuracy Class</span>
-                <span className="font-mono font-bold text-lg">{instrument?.accuracyClass ? `Class ${instrument.accuracyClass}` : '-'}</span>
+            {/* Header */}
+            <div className="bg-[#123B5D] px-10 py-6 text-warm-ivory">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h1 className="text-base font-heading font-bold uppercase tracking-widest">NAWI Test Report</h1>
+                  <p className="text-xs text-warm-ivory/50 mt-0.5 uppercase tracking-wider">OIML R 76-1 · Non-Automatic Weighing Instruments</p>
+                </div>
+                <div className="h-9 w-9 bg-white/10 rounded-xl flex items-center justify-center">
+                  <Scale className="h-5 w-5 text-[#C7F36B]" />
+                </div>
               </div>
             </div>
 
-            <h3 className="text-lg font-bold border-b-2 border-near-black pb-2 mb-6 uppercase tracking-widest">Evaluation Summary</h3>
-            <table className="w-full text-left mb-12 font-mono text-sm">
-              <thead>
-                <tr className="border-b-2 border-near-black/20">
-                  <th className="pb-3 uppercase tracking-wider text-near-black/50">Test Designation</th>
-                  <th className="pb-3 uppercase tracking-wider text-near-black/50 text-right">Result</th>
-                </tr>
-              </thead>
-              <tbody>
-                {testResults.map((t) => (
-                  <tr key={t.testName} className="border-b border-near-black/10">
-                    <td className="py-4 font-bold">{t.testName}</td>
-                    <td className="py-4 text-right font-bold uppercase">{t.passed ? 'PASS' : 'FAIL'}</td>
-                  </tr>
+            <div className="px-10 py-6">
+              {/* Metadata */}
+              <div className="grid grid-cols-2 gap-x-8 gap-y-4 mb-6 pb-6 border-b border-near-black/8">
+                {[
+                  { label: 'Application No.', value: reportData.applicationNo || 'DRAFT' },
+                  { label: 'Date of Test', value: reportData.date?.split('T')[0] || new Date().toISOString().split('T')[0] },
+                  { label: 'Lead Inspector', value: reportData.inspector || '—' },
+                  { label: 'Purpose', value: reportData.purposeOfTest || 'Model Approval' },
+                ].map(({ label, value }) => (
+                  <div key={label}>
+                    <p className="text-[10px] font-semibold text-near-black/35 uppercase tracking-wider">{label}</p>
+                    <p className="text-sm font-semibold text-near-black mt-0.5">{value}</p>
+                  </div>
                 ))}
-              </tbody>
-            </table>
+              </div>
 
-            <div className="mt-auto pt-12 border-t-4 border-near-black flex justify-between items-end">
-              <div>
-                <div className="w-48 h-12 border-b-2 border-near-black/20 mb-2"></div>
-                <p className="font-bold uppercase tracking-wider">{reportData.inspector || 'Inspector'}</p>
-                <p className="text-xs font-bold text-near-black/40 uppercase">Lead Inspector</p>
+              {/* Instrument */}
+              <div className="mb-6 pb-6 border-b border-near-black/8">
+                <p className="text-[10px] font-semibold text-near-black/35 uppercase tracking-wider mb-3">Instrument Details</p>
+                <div className="grid grid-cols-2 gap-x-8 gap-y-3">
+                  {[
+                    { label: 'Manufacturer', value: instrument?.manufacturer || '—' },
+                    { label: 'Model', value: instrument?.model || '—' },
+                    { label: 'Serial No.', value: instrument?.serialNumber || '—' },
+                    { label: 'Accuracy Class', value: instrument?.accuracyClass ? `Class ${instrument.accuracyClass}` : '—' },
+                    { label: 'Max Capacity', value: instrument?.maxCapacity ? `${instrument.maxCapacity} kg` : '—' },
+                    { label: 'Scale e', value: instrument?.eValue ? `${instrument.eValue} g` : '—' },
+                  ].map(({ label, value }) => (
+                    <div key={label}>
+                      <p className="text-[10px] text-near-black/30 uppercase tracking-wider">{label}</p>
+                      <p className="text-xs font-semibold text-near-black mt-0.5">{value}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="text-right">
-                <div className="w-48 h-12 border-b-2 border-near-black/20 mb-2"></div>
-                <p className="font-bold uppercase tracking-wider">Date of Approval</p>
+
+              {/* Environmental */}
+              {reportData.testConditions?.temperature && (
+                <div className="mb-6 pb-6 border-b border-near-black/8">
+                  <p className="text-[10px] font-semibold text-near-black/35 uppercase tracking-wider mb-3">Environmental Conditions</p>
+                  <div className="grid grid-cols-2 gap-x-8 gap-y-3">
+                    {[
+                      { label: 'Temperature', value: reportData.testConditions.temperature },
+                      { label: 'Humidity', value: reportData.testConditions.humidity },
+                      { label: 'Pressure', value: reportData.testConditions.atmosphericPressure },
+                      { label: 'Location', value: reportData.testConditions.location },
+                    ].filter(r => r.value).map(({ label, value }) => (
+                      <div key={label}>
+                        <p className="text-[10px] text-near-black/30 uppercase tracking-wider">{label}</p>
+                        <p className="text-xs font-semibold text-near-black mt-0.5">{value}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Test Results Table */}
+              <div className="mb-6">
+                <p className="text-[10px] font-semibold text-near-black/35 uppercase tracking-wider mb-3">Evaluation Summary</p>
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-near-black/10">
+                      <th className="pb-2 text-left text-[10px] font-semibold text-near-black/35 uppercase tracking-wider">Test Designation</th>
+                      <th className="pb-2 text-center text-[10px] font-semibold text-near-black/35 uppercase tracking-wider">Clause</th>
+                      <th className="pb-2 text-right text-[10px] font-semibold text-near-black/35 uppercase tracking-wider">Result</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-near-black/5">
+                    {testResults.length === 0 ? (
+                      <tr><td colSpan={3} className="py-4 text-center text-[10px] text-near-black/25">No tests recorded</td></tr>
+                    ) : testResults.map((t: any) => (
+                      <tr key={t.testName}>
+                        <td className="py-2.5 text-xs font-medium text-near-black">{t.testName}</td>
+                        <td className="py-2.5 text-center font-mono text-[10px] text-near-black/35">{t.testCode || '—'}</td>
+                        <td className="py-2.5 text-right">
+                          <span className={cn('text-xs font-bold', t.passed ? 'text-emerald' : 'text-red')}>
+                            {t.passed ? 'PASS' : 'FAIL'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
+
+              {/* Overall */}
+              {overallResult && (
+                <div className={cn(
+                  'rounded-lg px-4 py-3 mb-6 text-center border',
+                  overallResult === 'Pass' ? 'bg-emerald/8 border-emerald/20 text-emerald' :
+                    overallResult === 'Fail' ? 'bg-red/8 border-red/20 text-red' :
+                      'bg-signal-orange/8 border-signal-orange/20 text-signal-orange'
+                )}>
+                  <p className="text-sm font-bold uppercase tracking-widest">
+                    OVERALL RESULT: {overallResult.toUpperCase()}
+                  </p>
+                </div>
+              )}
+
+              {/* Signatures */}
+              <div className="grid grid-cols-2 gap-8 pt-4 border-t-2 border-near-black">
+                {[
+                  { name: reportData.inspector || 'Lead Inspector', role: 'Lead Inspector' },
+                  { name: 'Authorised Signatory', role: 'Laboratory Head' },
+                ].map(s => (
+                  <div key={s.role}>
+                    <div className="h-8 border-b border-near-black/15 mb-1.5" />
+                    <p className="text-[10px] font-bold text-near-black">{s.name}</p>
+                    <p className="text-[9px] text-near-black/30">{s.role} · Seal & Date</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="bg-near-black/4 px-10 py-2.5 text-center">
+              <p className="text-[9px] text-near-black/30">Generated by MaapSetu · OIML R 76-1:2006</p>
             </div>
           </div>
         </div>
-
       </div>
     </div>
   );

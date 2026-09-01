@@ -3,16 +3,46 @@ import { cn } from '@/lib/utils';
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   error?: boolean;
+  leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, error, ...props }, ref) => {
+  ({ className, error, leftIcon, rightIcon, ...props }, ref) => {
+    if (leftIcon || rightIcon) {
+      return (
+        <div className="relative flex items-center">
+          {leftIcon && (
+            <div className="absolute left-3 text-near-black/40 pointer-events-none flex items-center">
+              {leftIcon}
+            </div>
+          )}
+          <input
+            ref={ref}
+            className={cn(
+              'flex h-10 w-full rounded-lg border border-near-black/15 bg-white/70 px-3 py-2 text-sm text-near-black transition-all placeholder:text-near-black/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric-lime focus-visible:ring-offset-0 focus-visible:border-transparent hover:border-near-black/25 disabled:cursor-not-allowed disabled:opacity-50',
+              leftIcon && 'pl-9',
+              rightIcon && 'pr-9',
+              error && 'border-red focus-visible:ring-red',
+              className
+            )}
+            {...props}
+          />
+          {rightIcon && (
+            <div className="absolute right-3 text-near-black/40 pointer-events-none flex items-center">
+              {rightIcon}
+            </div>
+          )}
+        </div>
+      );
+    }
+
     return (
       <input
         ref={ref}
         className={cn(
-          'flex h-12 w-full rounded-none border-b-2 border-near-black/20 bg-transparent px-0 py-2 text-base text-near-black transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-near-black/40 focus-visible:outline-none focus-visible:border-electric-lime disabled:cursor-not-allowed disabled:opacity-50',
-          error && 'border-red focus-visible:border-red',
+          'flex h-10 w-full rounded-lg border border-near-black/15 bg-white/70 px-3 py-2 text-sm text-near-black transition-all placeholder:text-near-black/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric-lime focus-visible:ring-offset-0 focus-visible:border-transparent hover:border-near-black/25 disabled:cursor-not-allowed disabled:opacity-50',
+          error && 'border-red focus-visible:ring-red',
           className
         )}
         {...props}

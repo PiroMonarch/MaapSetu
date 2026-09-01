@@ -1,0 +1,447 @@
+{
+    "_disclaimer": "This rule set is structured for software development and demonstration. All numerical limits must be verified against the authoritative OIML R 76-1 (Edition 2006, corrected 2009) text before use in production. Source: OIML R 76-1:2006.",
+    "rule_set": {
+        "id": "OIML-R76-2006",
+        "name": "OIML R 76-1",
+        "full_name": "Non-Automatic Weighing Instruments — Part 1: Metrological and Technical Requirements",
+        "version": "2006",
+        "corrected": "2009",
+        "instrument_family": "NON_AUTOMATIC_WEIGHING_INSTRUMENTS",
+        "issuing_body": "International Organisation of Legal Metrology (OIML)",
+        "status": "ACTIVE",
+        "effective_from": "2006-01-01",
+        "superseded_by": null,
+        "calculation_engine_version": "V1"
+    },
+    "classification": {
+        "description": "Instruments are classified by accuracy class based on verification scale interval e and number of verification intervals n = Max/e.",
+        "input_fields": [
+            "accuracy_class",
+            "verification_scale_interval_kg",
+            "max_capacity_kg",
+            "min_capacity_kg"
+        ],
+        "classes": {
+            "I": {
+                "label": "Special accuracy",
+                "min_verification_intervals": 50000,
+                "max_verification_intervals": null,
+                "min_e_g": 0.001
+            },
+            "II": {
+                "label": "High accuracy",
+                "min_verification_intervals": 100,
+                "max_verification_intervals": 100000,
+                "min_e_g": 0.001
+            },
+            "III": {
+                "label": "Medium accuracy",
+                "min_verification_intervals": 100,
+                "max_verification_intervals": 10000,
+                "min_e_g": 0.1
+            },
+            "IIII": {
+                "label": "Ordinary accuracy",
+                "min_verification_intervals": 100,
+                "max_verification_intervals": 1000,
+                "min_e_g": 0.1
+            }
+        }
+    },
+    "mpe_table": {
+        "description": "Maximum Permissible Errors for initial verification (Table 1, OIML R 76-1:2006). Load m expressed in multiples of verification scale interval e.",
+        "note": "Values for in-service verification are double these limits per national regulations.",
+        "classes": {
+            "I": [
+                {
+                    "load_range_min_e": 0,
+                    "load_range_max_e": 50000,
+                    "mpe_in_e": 0.5
+                },
+                {
+                    "load_range_min_e": 50000,
+                    "load_range_max_e": 200000,
+                    "mpe_in_e": 1.0
+                },
+                {
+                    "load_range_min_e": 200000,
+                    "load_range_max_e": null,
+                    "mpe_in_e": 1.5
+                }
+            ],
+            "II": [
+                {
+                    "load_range_min_e": 0,
+                    "load_range_max_e": 5000,
+                    "mpe_in_e": 0.5
+                },
+                {
+                    "load_range_min_e": 5000,
+                    "load_range_max_e": 20000,
+                    "mpe_in_e": 1.0
+                },
+                {
+                    "load_range_min_e": 20000,
+                    "load_range_max_e": null,
+                    "mpe_in_e": 1.5
+                }
+            ],
+            "III": [
+                {
+                    "load_range_min_e": 0,
+                    "load_range_max_e": 500,
+                    "mpe_in_e": 0.5
+                },
+                {
+                    "load_range_min_e": 500,
+                    "load_range_max_e": 2000,
+                    "mpe_in_e": 1.0
+                },
+                {
+                    "load_range_min_e": 2000,
+                    "load_range_max_e": null,
+                    "mpe_in_e": 1.5
+                }
+            ],
+            "IIII": [
+                {
+                    "load_range_min_e": 0,
+                    "load_range_max_e": 50,
+                    "mpe_in_e": 0.5
+                },
+                {
+                    "load_range_min_e": 50,
+                    "load_range_max_e": 200,
+                    "mpe_in_e": 1.0
+                },
+                {
+                    "load_range_min_e": 200,
+                    "load_range_max_e": null,
+                    "mpe_in_e": 1.5
+                }
+            ]
+        }
+    },
+    "test_types": [
+        {
+            "code": "ZERO",
+            "name": "Zero-setting test",
+            "clause": "T.3.1",
+            "required": true
+        },
+        {
+            "code": "WEIGHING",
+            "name": "Weighing performance",
+            "clause": "T.3.2",
+            "required": true
+        },
+        {
+            "code": "REPEATABILITY",
+            "name": "Repeatability",
+            "clause": "T.3.3",
+            "required": true
+        },
+        {
+            "code": "ECCENTRICITY",
+            "name": "Eccentric loading",
+            "clause": "T.3.4",
+            "required": true
+        },
+        {
+            "code": "DISCRIMINATION",
+            "name": "Discrimination",
+            "clause": "T.3.5",
+            "required": true
+        },
+        {
+            "code": "TARE",
+            "name": "Tare test",
+            "clause": "T.4.1",
+            "required": false
+        },
+        {
+            "code": "INCREASING_LOAD",
+            "name": "Increasing-load test",
+            "clause": "T.3.2",
+            "required": true
+        },
+        {
+            "code": "DECREASING_LOAD",
+            "name": "Decreasing-load test",
+            "clause": "T.3.2",
+            "required": true
+        }
+    ],
+    "rules": [
+        {
+            "rule_id": "R76-ZERO-001",
+            "name": "Zero-setting / Zero-tracking",
+            "test_type": "ZERO",
+            "clause": "T.3.1",
+            "description": "After zeroing, the indication must be within ±0.25e of zero.",
+            "applicable_classes": [
+                "I",
+                "II",
+                "III",
+                "IIII"
+            ],
+            "calculation": {
+                "type": "ABSOLUTE_DEVIATION_FROM_ZERO",
+                "inputs": [
+                    "zero_indication_g"
+                ],
+                "threshold_formula": "0.25 * e"
+            },
+            "validation": {
+                "operator": "<=",
+                "compare_against": "threshold"
+            },
+            "output": [
+                "deviation",
+                "threshold",
+                "result"
+            ]
+        },
+        {
+            "rule_id": "R76-MPE-001",
+            "name": "Weighing Performance — Maximum Permissible Error",
+            "test_type": "WEIGHING",
+            "clause": "T.3.2",
+            "description": "Error of indication must not exceed MPE at any test load. Corrected error Ec = (I + 0.5e - ΔL) - L - E0.",
+            "applicable_classes": [
+                "I",
+                "II",
+                "III",
+                "IIII"
+            ],
+            "calculation": {
+                "type": "PIECEWISE_MPE",
+                "inputs": [
+                    "load_g",
+                    "indication_g",
+                    "added_weight_g",
+                    "e_g",
+                    "accuracy_class"
+                ],
+                "steps": [
+                    "P = indication + 0.5*e - added_weight",
+                    "E = P - load",
+                    "E0 = error_at_zero_load",
+                    "Ec = E - E0",
+                    "mpe = lookup(load/e, accuracy_class, mpe_table)"
+                ],
+                "pass_condition": "ABS(Ec) <= mpe"
+            },
+            "validation": {
+                "operator": "<=",
+                "compare_against": "mpe"
+            },
+            "output": [
+                "P",
+                "E",
+                "Ec",
+                "mpe",
+                "result"
+            ]
+        },
+        {
+            "rule_id": "R76-REP-001",
+            "name": "Repeatability",
+            "test_type": "REPEATABILITY",
+            "clause": "T.3.3",
+            "description": "The range (max-min) of repeated weighings of the same load must not exceed 0.5e for initial verification.",
+            "applicable_classes": [
+                "I",
+                "II",
+                "III",
+                "IIII"
+            ],
+            "min_readings": 5,
+            "calculation": {
+                "type": "MAX_MIN_DIFFERENCE",
+                "inputs": [
+                    "readings_array_g",
+                    "e_g"
+                ],
+                "steps": [
+                    "range = max(readings) - min(readings)",
+                    "threshold = 0.5 * e"
+                ],
+                "pass_condition": "range <= threshold"
+            },
+            "validation": {
+                "operator": "<=",
+                "compare_against": "threshold"
+            },
+            "output": [
+                "mean",
+                "range",
+                "threshold",
+                "result"
+            ]
+        },
+        {
+            "rule_id": "R76-ECC-001",
+            "name": "Eccentric Loading",
+            "test_type": "ECCENTRICITY",
+            "clause": "T.3.4",
+            "description": "With a test load at 5 positions on the load receptor, the maximum difference between any two indications must not exceed the MPE at that load.",
+            "applicable_classes": [
+                "I",
+                "II",
+                "III",
+                "IIII"
+            ],
+            "positions": [
+                "Centre",
+                "North",
+                "South",
+                "East",
+                "West"
+            ],
+            "calculation": {
+                "type": "MAX_POSITIONAL_DEVIATION",
+                "inputs": [
+                    "indications_per_position_g",
+                    "test_load_g",
+                    "e_g",
+                    "accuracy_class"
+                ],
+                "steps": [
+                    "max_diff = max(indications) - min(indications)",
+                    "mpe = lookup(test_load/e, accuracy_class, mpe_table)"
+                ],
+                "pass_condition": "max_diff <= mpe"
+            },
+            "validation": {
+                "operator": "<=",
+                "compare_against": "mpe"
+            },
+            "output": [
+                "max_diff",
+                "mpe",
+                "result"
+            ]
+        },
+        {
+            "rule_id": "R76-DISC-001",
+            "name": "Discrimination",
+            "test_type": "DISCRIMINATION",
+            "clause": "T.3.5",
+            "description": "When 0.1e is added to a loaded instrument, the indication must change by at least 1d.",
+            "applicable_classes": [
+                "I",
+                "II",
+                "III",
+                "IIII"
+            ],
+            "calculation": {
+                "type": "INDICATION_CHANGE_ON_SMALL_LOAD",
+                "inputs": [
+                    "indication_before_g",
+                    "indication_after_g",
+                    "added_weight_g",
+                    "d_g"
+                ],
+                "steps": [
+                    "added_weight = 0.1 * e",
+                    "delta_indication = ABS(indication_after - indication_before)",
+                    "threshold = 1 * d"
+                ],
+                "pass_condition": "delta_indication >= threshold"
+            },
+            "validation": {
+                "operator": ">=",
+                "compare_against": "threshold"
+            },
+            "output": [
+                "delta_indication",
+                "threshold",
+                "result"
+            ]
+        },
+        {
+            "rule_id": "R76-TARE-001",
+            "name": "Tare Weighing",
+            "test_type": "TARE",
+            "clause": "T.4.1",
+            "description": "After taring, the indication must return to within ±0.25e of zero.",
+            "applicable_classes": [
+                "II",
+                "III",
+                "IIII"
+            ],
+            "calculation": {
+                "type": "ABSOLUTE_DEVIATION_FROM_ZERO",
+                "inputs": [
+                    "indication_after_tare_g",
+                    "e_g"
+                ],
+                "threshold_formula": "0.25 * e"
+            },
+            "validation": {
+                "operator": "<=",
+                "compare_against": "threshold"
+            },
+            "output": [
+                "deviation",
+                "threshold",
+                "result"
+            ]
+        },
+        {
+            "rule_id": "R76-CLASS-001",
+            "name": "Class Consistency Check",
+            "test_type": "CLASSIFICATION",
+            "clause": "3.2",
+            "description": "The number of verification scale intervals n = Max/e must fall within the valid range for the declared accuracy class.",
+            "applicable_classes": [
+                "I",
+                "II",
+                "III",
+                "IIII"
+            ],
+            "calculation": {
+                "type": "CLASS_VERIFICATION",
+                "inputs": [
+                    "max_capacity_kg",
+                    "e_g",
+                    "accuracy_class"
+                ],
+                "steps": [
+                    "n = (max_capacity_kg * 1000) / e_g",
+                    "check n against class limits in classification table"
+                ]
+            },
+            "output": [
+                "n",
+                "valid",
+                "message"
+            ]
+        },
+        {
+            "rule_id": "R76-OVERALL-001",
+            "name": "Overall Compliance Determination",
+            "test_type": "OVERALL",
+            "clause": "General",
+            "description": "An instrument passes model approval only if ALL required tests pass.",
+            "applicable_classes": [
+                "I",
+                "II",
+                "III",
+                "IIII"
+            ],
+            "calculation": {
+                "type": "ALL_REQUIRED_TESTS_PASS",
+                "inputs": [
+                    "test_results_array"
+                ],
+                "pass_condition": "all required tests have result = PASS"
+            },
+            "output": [
+                "overall_result",
+                "failed_tests"
+            ]
+        }
+    ]
+}

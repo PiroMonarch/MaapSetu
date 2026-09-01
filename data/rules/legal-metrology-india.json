@@ -1,0 +1,111 @@
+{
+    "_disclaimer": "This is a supplementary rule file for reference. The actual Legal Metrology (General) Rules, 2011 and applicable model approval procedures must be sourced from the Department of Consumer Affairs, Government of India (https://consumeraffairs.gov.in). Do not treat this file as authoritative.",
+    "rule_set": {
+        "id": "LM-INDIA-2011",
+        "name": "Legal Metrology (General) Rules, 2011",
+        "parent_standard": "OIML-R76-2006",
+        "issuing_body": "Department of Consumer Affairs, Ministry of Consumer Affairs, Food & Public Distribution, Government of India",
+        "legal_basis": "Legal Metrology Act, 2009 (No. 1 of 2010)",
+        "status": "ACTIVE",
+        "gazette_reference": "G.S.R. 71(E), dated 28.01.2011",
+        "last_amended": "2022",
+        "source_url": "https://consumeraffairs.gov.in/pages/legal-metrology-act"
+    },
+    "model_approval": {
+        "description": "Every pattern/model of a NAWI used in trade or commerce requires model approval from the Central Government before manufacture, import or sale.",
+        "approving_authority": "Controller of Legal Metrology, Department of Consumer Affairs",
+        "evaluation_basis": "OIML R 76-1 (as adopted by India)",
+        "designated_laboratories": [
+            "Regional Reference Standards Laboratories (RRSL)",
+            "NABL-accredited Legal Metrology Laboratories"
+        ],
+        "validity_period_years": 10,
+        "renewal": "Model approval shall be renewed if the design is modified or the approval period expires."
+    },
+    "verification": {
+        "initial_verification": {
+            "description": "Verification prior to first use in trade.",
+            "mpe_factor": 1.0,
+            "note": "MPE same as OIML R 76-1 initial verification limits."
+        },
+        "subsequent_verification": {
+            "description": "Periodic re-verification by Inspector of Legal Metrology.",
+            "mpe_factor": 2.0,
+            "note": "MPE is double the initial verification limits per in-service rules."
+        }
+    },
+    "instrument_classifications": [
+        {
+            "type": "RETAIL_WEIGHING",
+            "description": "Instruments used in retail trade for weighing commodities",
+            "required_class": [
+                "III",
+                "IIII"
+            ],
+            "applicable_rules": [
+                "R76-MPE-001",
+                "R76-REP-001",
+                "R76-ECC-001"
+            ]
+        },
+        {
+            "type": "PRECISION_WEIGHING",
+            "description": "Instruments used in pharmaceutical, jewellery, or high-precision contexts",
+            "required_class": [
+                "I",
+                "II"
+            ],
+            "applicable_rules": [
+                "R76-MPE-001",
+                "R76-REP-001",
+                "R76-ECC-001",
+                "R76-DISC-001"
+            ]
+        },
+        {
+            "type": "INDUSTRIAL_WEIGHING",
+            "description": "Weighbridges and heavy-duty industrial scales",
+            "required_class": [
+                "III"
+            ],
+            "applicable_rules": [
+                "R76-MPE-001",
+                "R76-REP-001",
+                "R76-ECC-001"
+            ]
+        }
+    ],
+    "report_requirements": {
+        "mandatory_fields": [
+            "Application Number",
+            "Instrument Manufacturer",
+            "Model Designation",
+            "Serial Number",
+            "Accuracy Class",
+            "Max Capacity",
+            "Verification Scale Interval (e)",
+            "Test Date",
+            "Laboratory Name and Accreditation Number",
+            "Name and Designation of Test Officer",
+            "Environmental Conditions (Temperature, Humidity)",
+            "Reference Standard Used and Calibration Certificate",
+            "Test Observations for all applicable tests",
+            "Calculated Errors and MPE",
+            "Pass/Fail determination per test",
+            "Overall Compliance Decision",
+            "Signature and Seal of Test Officer",
+            "Signature and Seal of Head of Laboratory"
+        ],
+        "optional_fields": [
+            "Photographs of instrument",
+            "Nameplate photograph",
+            "Digital signature",
+            "Remarks"
+        ],
+        "output_formats": [
+            "PDF",
+            "DOCX"
+        ],
+        "retention_period_years": 10
+    }
+}
