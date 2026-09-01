@@ -70,7 +70,7 @@ export const seedDatabase = async () => {
       email: "inspector@maapsetu.com",
       password: "password123", // In a real app this would be hashed
       name: "Anjali",
-      role: "inspector"
+      role: "TECHNICIAN"
     });
   }
 

@@ -51,8 +51,23 @@ router.get('/reports', async (req, res) => {
 });
 
 router.post('/reports', async (req, res) => {
-  const report = await Report.create(req.body);
-  res.json(report);
+  try {
+    // Prevent clients from forcing _id or other protected fields
+    const payload = { ...req.body };
+    delete payload._id;
+    delete payload.__v;
+    delete payload.createdAt;
+    delete payload.updatedAt;
+
+    const report = await Report.create(payload);
+    res.json(report);
+  } catch (err: any) {
+    console.error('Error creating report:', err?.message || err);
+    if (err && err.code === 11000) {
+      return res.status(409).json({ error: 'Duplicate key error' });
+    }
+    res.status(500).json({ error: 'Failed to create report' });
+  }
 });
 
 router.get('/reports/:id', async (req, res) => {
@@ -90,16 +105,27 @@ router.get('/reports/:id/pdf', async (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename=Report-${report.applicationNo}.pdf`);
     doc.pipe(res);
 
-    // Track pages for footer
+    // Track pages for footer. Use guards to avoid re-entrant writes
     let pageNumber = 1;
+    let addingFooter = false;
     const addFooter = () => {
-      const bottom = doc.page.height - 40;
-      doc.fontSize(9).fillColor('grey').text(`Page ${pageNumber}`, 50, bottom, { align: 'center', width: doc.page.width - 100 });
+      if (addingFooter) return;
+      addingFooter = true;
+      try {
+        const bottom = doc.page.height - 40;
+        // Draw footer without causing layout recursion
+        doc.save();
+        doc.fontSize(9).fillColor('grey').text(`Page ${pageNumber}`, 50, bottom, { align: 'center', width: doc.page.width - 100 });
+        doc.restore();
+      } finally {
+        addingFooter = false;
+      }
     };
 
+    // When a new page is added, increment page counter and schedule footer safely
     doc.on('pageAdded', () => {
       pageNumber += 1;
-      addFooter();
+      setImmediate(addFooter);
     });
 
     // Header
