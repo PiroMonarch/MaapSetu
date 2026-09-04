@@ -287,8 +287,12 @@ router.get('/oiml-rules', async (req, res) => {
 // ─── PDF Generation ───────────────────────────────────────────────────────────
 router.get('/reports/:id/pdf', async (req, res) => {
   try {
-    const report = await Report.findById(req.params.id).populate('instrumentId');
-    const results = await TestResult.find({ reportId: req.params.id });
+    const { id } = req.params;
+    if (!id || id === 'undefined' || id === 'null' || !/^[a-f\d]{24}$/i.test(id)) {
+      return res.status(400).json({ error: 'Invalid report ID' });
+    }
+    const report = await Report.findById(id).populate('instrumentId');
+    const results = await TestResult.find({ reportId: id });
 
     if (!report) return res.status(404).send('Report not found');
 
