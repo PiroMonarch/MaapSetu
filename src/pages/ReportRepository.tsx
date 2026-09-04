@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Search, Plus, ChevronRight, FileText, SlidersHorizontal } from 'lucide-react';
+import { Search, Plus, ChevronRight, FileText, SlidersHorizontal, Download } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
@@ -20,6 +20,7 @@ export function ReportRepository() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<string>('All');
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/reports')
@@ -27,6 +28,29 @@ export function ReportRepository() {
       .then(data => { setReports(data); setLoading(false); })
       .catch(() => setLoading(false));
   }, []);
+
+  const handleDownloadPDF = async (e: React.MouseEvent, report: any) => {
+    e.stopPropagation();
+    setDownloadingId(report._id);
+    try {
+      const res = await fetch(`/api/reports/${report._id}/pdf`);
+      if (!res.ok) throw new Error(`Server error: ${res.status}`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `NAWI-Report-${report.applicationNo || report._id}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('PDF export failed:', err);
+      alert('PDF export failed.');
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   const statuses = ['All', 'Draft', 'Completed', 'Review', 'Failed'];
 
@@ -74,8 +98,8 @@ export function ReportRepository() {
               key={s}
               onClick={() => setFilter(s)}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${filter === s
-                  ? 'bg-near-black text-warm-ivory'
-                  : 'text-near-black/50 hover:text-near-black hover:bg-near-black/6'
+                ? 'bg-near-black text-warm-ivory'
+                : 'text-near-black/50 hover:text-near-black hover:bg-near-black/6'
                 }`}
             >
               {s}
@@ -144,6 +168,14 @@ export function ReportRepository() {
               </div>
               <div className="lg:col-span-2 flex justify-end items-center gap-2">
                 <Badge variant={statusVariant(report.status)} dot>{report.status}</Badge>
+                <button
+                  onClick={(e) => handleDownloadPDF(e, report)}
+                  disabled={downloadingId === report._id}
+                  title="Download PDF"
+                  className="p-1.5 rounded-lg text-near-black/30 hover:text-near-black/70 hover:bg-near-black/8 transition-colors disabled:opacity-40"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                </button>
                 <ChevronRight className="h-4 w-4 text-near-black/20 group-hover:text-near-black/50 transition-colors" />
               </div>
             </motion.div>

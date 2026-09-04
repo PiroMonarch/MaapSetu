@@ -14,6 +14,7 @@ export function Step5Review() {
   const [aiAdvice, setAiAdvice] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,9 +25,27 @@ export function Step5Review() {
     }
   }, [reportData.instrumentId]);
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     if (!currentReportId) return;
-    window.open(`/api/reports/${currentReportId}/pdf`, '_blank');
+    setPdfLoading(true);
+    try {
+      const res = await fetch(`/api/reports/${currentReportId}/pdf`);
+      if (!res.ok) throw new Error(`Server error: ${res.status}`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `NAWI-Report-${reportData.applicationNo || currentReportId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('PDF export failed:', err);
+      alert('PDF export failed. Check the console for details.');
+    } finally {
+      setPdfLoading(false);
+    }
   };
 
   const handleFinalize = async () => {
@@ -86,8 +105,8 @@ export function Step5Review() {
           <p className="text-sm text-near-black/50 mt-1">Confirm all data, determine overall compliance, and generate the report.</p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <Button variant="outline" onClick={handleExportPDF} disabled={!currentReportId}>
-            <Download className="h-4 w-4" /> Export PDF
+          <Button variant="outline" onClick={handleExportPDF} disabled={!currentReportId || pdfLoading}>
+            {pdfLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} Export PDF
           </Button>
           <Button onClick={handleFinalize} disabled={!currentReportId || finalizing}>
             {finalizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
